@@ -1,0 +1,12 @@
+{
+  "name": "shrinker",
+  "version": "1.0.0",
+  "description": "Dockerized media converter — batch convert videos to compressed H.264 MP4",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}

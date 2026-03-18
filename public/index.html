@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shrinker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Shrinker</h1>
+    <p class="subtitle">Batch video converter</p>
+    <span id="encoderBadge" class="encoder-badge"></span>
+  </header>
+
+  <main>
+    <!-- Scanner Section -->
+    <section id="scanner" class="card">
+      <h2>Scan &amp; Convert</h2>
+      <div class="controls">
+        <select id="dirSelect">
+          <option value="">Select directory...</option>
+        </select>
+        <select id="presetSelect">
+          <option value="480p">480p (CRF 28)</option>
+          <option value="720p">720p (CRF 23)</option>
+          <option value="1080p" selected>1080p (CRF 23)</option>
+          <option value="1440p">1440p (CRF 22)</option>
+          <option value="4k">4K (CRF 20)</option>
+        </select>
+        <button id="scanBtn" onclick="scan()">Scan</button>
+      </div>
+
+      <div id="fileList" class="hidden">
+        <div class="file-actions">
+          <label><input type="checkbox" id="selectAll" onchange="toggleAll(this.checked)"> Select all</label>
+          <span id="fileCount"></span>
+        </div>
+        <table id="fileTable">
+          <thead>
+            <tr>
+              <th></th>
+              <th>File</th>
+              <th>Size</th>
+              <th>Resolution</th>
+              <th>Codec</th>
+              <th>Duration</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button id="convertBtn" onclick="startConvert()">Convert Selected</button>
+      </div>
+    </section>
+
+    <!-- Progress Section -->
+    <section id="progress" class="card hidden">
+      <h2>Progress</h2>
+      <div class="progress-info">
+        <p id="progressOverall">—</p>
+        <div id="jobList"></div>
+        <button id="cancelBtn" onclick="cancelConvert()">Cancel</button>
+      </div>
+    </section>
+
+    <!-- Schedules Section -->
+    <section id="schedulesSection" class="card">
+      <h2>Scheduled Scans</h2>
+      <div class="controls">
+        <select id="schedDirSelect">
+          <option value="">Select directory...</option>
+        </select>
+        <select id="schedPresetSelect">
+          <option value="480p">480p</option>
+          <option value="720p">720p</option>
+          <option value="1080p" selected>1080p</option>
+          <option value="1440p">1440p</option>
+          <option value="4k">4K</option>
+        </select>
+        <select id="schedInterval">
+          <option value="5">Every 5 min</option>
+          <option value="15">Every 15 min</option>
+          <option value="30">Every 30 min</option>
+          <option value="60" selected>Every 1 hour</option>
+          <option value="360">Every 6 hours</option>
+          <option value="720">Every 12 hours</option>
+          <option value="1440">Every 24 hours</option>
+        </select>
+        <button onclick="addSchedule()">Add</button>
+      </div>
+      <table id="schedTable" class="hidden">
+        <thead>
+          <tr>
+            <th>Directory</th>
+            <th>Preset</th>
+            <th>Interval</th>
+            <th>Last Run</th>
+            <th>Files Found</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="schedEmpty">No scheduled scans.</p>
+    </section>
+
+    <!-- History Section -->
+    <section id="historySection" class="card">
+      <h2>History</h2>
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>File</th>
+            <th>Input</th>
+            <th>Output</th>
+            <th>Ratio</th>
+            <th>Preset</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="historyEmpty">No conversions yet.</p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
