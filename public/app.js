@@ -11,22 +11,114 @@ $('presetSelect').addEventListener('change', () => {
   localStorage.setItem('shrinker_preset', $('presetSelect').value);
 });
 
-// Load directories on startup
-(async function init() {
-  try {
-    const dirs = await api('/api/directories');
-    const sel = $('dirSelect');
-    const schedSel = $('schedDirSelect');
-    dirs.forEach(d => {
-      const opt = document.createElement('option');
-      opt.value = d.path;
-      opt.textContent = d.name;
-      sel.appendChild(opt);
-      schedSel.appendChild(opt.cloneNode(true));
-    });
-  } catch (e) {
-    console.error('Failed to load directories:', e);
+// --- Directory Picker ---
+
+function createDirPicker(breadcrumbEl, listEl) {
+  const state = { path: null, name: null, ancestors: [] };
+  // ancestors: [{ path, name }] — does not include current
+
+  async function navigate(dirPath, dirName) {
+    if (dirPath && state.path) {
+      state.ancestors.push({ path: state.path, name: state.name });
+    }
+    if (!dirPath) {
+      state.ancestors = [];
+    }
+    state.path = dirPath;
+    state.name = dirName;
+    await render();
   }
+
+  function goTo(index) {
+    // index -1 = root, 0..n = ancestor index
+    if (index === -1) {
+      state.path = null;
+      state.name = null;
+      state.ancestors = [];
+    } else {
+      const target = state.ancestors[index];
+      state.path = target.path;
+      state.name = target.name;
+      state.ancestors = state.ancestors.slice(0, index);
+    }
+    render();
+  }
+
+  async function render() {
+    // Breadcrumb
+    breadcrumbEl.innerHTML = '';
+    const root = document.createElement('span');
+    root.textContent = 'Media';
+    if (state.path) {
+      root.addEventListener('click', () => goTo(-1));
+    } else {
+      root.className = 'current';
+    }
+    breadcrumbEl.appendChild(root);
+
+    for (let i = 0; i < state.ancestors.length; i++) {
+      const sep = document.createElement('span');
+      sep.className = 'sep';
+      sep.textContent = ' / ';
+      breadcrumbEl.appendChild(sep);
+      const crumb = document.createElement('span');
+      crumb.textContent = state.ancestors[i].name;
+      crumb.addEventListener('click', () => goTo(i));
+      breadcrumbEl.appendChild(crumb);
+    }
+
+    if (state.path) {
+      const sep = document.createElement('span');
+      sep.className = 'sep';
+      sep.textContent = ' / ';
+      breadcrumbEl.appendChild(sep);
+      const current = document.createElement('span');
+      current.className = 'current';
+      current.textContent = state.name;
+      breadcrumbEl.appendChild(current);
+    }
+
+    // Subdirectory list
+    const url = state.path
+      ? `/api/directories?parent=${encodeURIComponent(state.path)}`
+      : '/api/directories';
+    try {
+      const dirs = await api(url);
+      listEl.innerHTML = '';
+      if (dirs.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'dir-empty';
+        empty.textContent = 'No subdirectories';
+        listEl.appendChild(empty);
+      } else {
+        dirs.forEach(d => {
+          const entry = document.createElement('div');
+          entry.className = 'dir-entry';
+          entry.innerHTML = `<span class="folder-icon">&#128193;</span> ${escapeHtml(d.name)}`;
+          entry.addEventListener('click', () => navigate(d.path, d.name));
+          listEl.appendChild(entry);
+        });
+      }
+    } catch (e) {
+      console.error('Failed to load directories:', e);
+    }
+  }
+
+  render();
+  return { getPath: () => state.path, render };
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+const scanPicker = createDirPicker($('scanBreadcrumb'), $('scanDirList'));
+const schedPicker = createDirPicker($('schedBreadcrumb'), $('schedDirList'));
+
+// Load on startup
+(async function init() {
   loadHistory();
   checkStatus();
   loadEncoder();
@@ -68,7 +160,7 @@ function formatDuration(seconds) {
 }
 
 async function scan() {
-  const dir = $('dirSelect').value;
+  const dir = scanPicker.getPath();
   const preset = $('presetSelect').value;
   if (!dir) return;
 
@@ -223,14 +315,31 @@ async function loadHistory() {
   try {
     const entries = await api('/api/history');
     const tbody = $('historyTable').querySelector('tbody');
+    const summary = $('historySummary');
     tbody.innerHTML = '';
 
     if (entries.length === 0) {
       $('historyEmpty').classList.remove('hidden');
+      summary.classList.add('hidden');
       return;
     }
 
     $('historyEmpty').classList.add('hidden');
+
+    // Compute summary
+    const successful = entries.filter(e => e.status === 'success');
+    const totalDuration = entries.reduce((sum, e) => sum + parseFloat(e.duration || 0), 0);
+    const totalInput = successful.reduce((sum, e) => sum + (e.inputSize || 0), 0);
+    const totalOutput = successful.reduce((sum, e) => sum + (e.outputSize || 0), 0);
+    const saved = totalInput - totalOutput;
+
+    summary.classList.remove('hidden');
+    summary.innerHTML = `
+      <span><span class="stat-label">Converted:</span><span class="stat-value">${successful.length} / ${entries.length} files</span></span>
+      <span><span class="stat-label">Total time:</span><span class="stat-value">${formatDuration(totalDuration)}</span></span>
+      <span><span class="stat-label">Saved:</span><span class="stat-value positive">${formatSize(saved)}</span></span>
+      <span><span class="stat-label">Size:</span><span class="stat-value">${formatSize(totalInput)} → ${formatSize(totalOutput)}</span></span>
+    `;
 
     // Show newest first
     entries.reverse().forEach(e => {
@@ -299,7 +408,7 @@ async function loadSchedules() {
 }
 
 async function addSchedule() {
-  const directory = $('schedDirSelect').value;
+  const directory = schedPicker.getPath();
   const preset = $('schedPresetSelect').value;
   const intervalMinutes = parseInt($('schedInterval').value, 10);
 

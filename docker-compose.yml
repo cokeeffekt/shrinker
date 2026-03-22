@@ -6,7 +6,7 @@ services:
     volumes:
       - ./data:/app/data
       # Mount your media directories below:
-      - /home/coke/Downloads:/media/Videos
+      - /home/coke:/media/Videos
       # - /path/to/movies:/media/Movies
     # deploy:
     #   resources:

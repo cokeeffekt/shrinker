@@ -18,9 +18,10 @@
     <section id="scanner" class="card">
       <h2>Scan &amp; Convert</h2>
       <div class="controls">
-        <select id="dirSelect">
-          <option value="">Select directory...</option>
-        </select>
+        <div class="dir-picker" id="scanDirPicker">
+          <div class="dir-breadcrumb" id="scanBreadcrumb"></div>
+          <div class="dir-list" id="scanDirList"></div>
+        </div>
         <select id="presetSelect">
           <option value="480p">480p (CRF 28)</option>
           <option value="720p">720p (CRF 23)</option>
@@ -68,9 +69,10 @@
     <section id="schedulesSection" class="card">
       <h2>Scheduled Scans</h2>
       <div class="controls">
-        <select id="schedDirSelect">
-          <option value="">Select directory...</option>
-        </select>
+        <div class="dir-picker" id="schedDirPicker">
+          <div class="dir-breadcrumb" id="schedBreadcrumb"></div>
+          <div class="dir-list" id="schedDirList"></div>
+        </div>
         <select id="schedPresetSelect">
           <option value="480p">480p</option>
           <option value="720p">720p</option>
@@ -109,6 +111,7 @@
     <!-- History Section -->
     <section id="historySection" class="card">
       <h2>History</h2>
+      <div id="historySummary" class="history-summary hidden"></div>
       <table id="historyTable">
         <thead>
           <tr>

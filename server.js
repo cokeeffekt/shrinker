@@ -17,9 +17,13 @@ app.get('/api/encoder', async (req, res) => {
   res.json({ encoder: nvenc ? 'hevc_nvenc' : 'libx265', hwaccel: nvenc, concurrency: getConcurrency() });
 });
 
-// List mounted media directories
+// List directories (optionally within a parent)
 app.get('/api/directories', (req, res) => {
-  res.json(listDirectories());
+  try {
+    res.json(listDirectories(req.query.parent || null));
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 // Return preset definitions
