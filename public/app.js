@@ -352,7 +352,7 @@ async function loadHistory() {
         <td>${formatSize(e.outputSize)}</td>
         <td>${e.ratio !== 'N/A' ? (e.ratio * 100).toFixed(0) + '%' : '—'}</td>
         <td>${e.preset}</td>
-        <td class="${statusClass}">${e.status}</td>
+        <td class="${statusClass}" ${e.error ? `title="${escapeHtml(e.error)}"` : ''}>${e.status}${e.error ? ' *' : ''}</td>
       `;
       tbody.appendChild(tr);
     });

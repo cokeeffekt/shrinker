@@ -208,7 +208,7 @@ tr.skip { opacity: 0.5; }
 .hidden { display: none !important; }
 
 .status-success { color: #3fb950; }
-.status-error { color: #f85149; }
+.status-error { color: #f85149; cursor: default; }
 .status-cancelled { color: #d29922; }
 
 .history-summary {
