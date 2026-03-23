@@ -1,5 +1,6 @@
 let scannedFiles = [];
 let pollTimer = null;
+let lastSeenCompleted = 0;
 
 const $ = (id) => document.getElementById(id);
 
@@ -259,6 +260,12 @@ async function checkStatus() {
   try {
     const status = await api('/api/status');
 
+    // Reload history whenever a job finishes
+    if (status.lastCompletedAt && status.lastCompletedAt > lastSeenCompleted) {
+      lastSeenCompleted = status.lastCompletedAt;
+      loadHistory();
+    }
+
     if (status.active) {
       $('progress').classList.remove('hidden');
       startPolling();
@@ -294,7 +301,6 @@ async function checkStatus() {
         $('convertBtn').disabled = false;
         $('progressOverall').textContent = 'Done';
         $('jobList').innerHTML = '';
-        loadHistory();
       }
     }
   } catch (e) {
@@ -341,8 +347,7 @@ async function loadHistory() {
       <span><span class="stat-label">Size:</span><span class="stat-value">${formatSize(totalInput)} → ${formatSize(totalOutput)}</span></span>
     `;
 
-    // Show newest first
-    entries.reverse().forEach(e => {
+    entries.forEach(e => {
       const tr = document.createElement('tr');
       const statusClass = `status-${e.status}`;
       tr.innerHTML = `
