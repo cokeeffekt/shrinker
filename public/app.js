@@ -279,10 +279,18 @@ async function checkStatus() {
 
       for (const job of status.jobs) {
         const pct = (job.progress.percent || 0).toFixed(1);
+        const enc = job.progress.encoder || '';
+        const encLabel = {
+          'nvenc-gpu': 'GPU',
+          'nvenc-cpu': 'GPU*',
+          'cpu': 'CPU',
+          'cpu-fallback': 'CPU!',
+        }[enc] || '';
+        const encClass = enc.startsWith('nvenc') ? 'enc-gpu' : 'enc-cpu';
         const div = document.createElement('div');
         div.className = 'job-card';
         div.innerHTML = `
-          <div class="job-name" title="${job.file}">${job.name}</div>
+          <div class="job-name" title="${job.file}">${job.name}${encLabel ? ` <span class="enc-badge ${encClass}">${encLabel}</span>` : ''}</div>
           <div class="job-bar-container">
             <div class="job-bar" style="width:${pct}%"></div>
             <span class="job-bar-pct">${pct}%</span>
